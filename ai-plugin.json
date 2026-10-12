@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Deployxa",
+  "name_for_model": "deployxa",
+  "description_for_human": "Deploy applications, inspect live build logs, diagnose failures, and search & register custom domains on Deployxa.",
+  "description_for_model": "Plugin for Deployxa cloud platform. Allows deploying git projects, streaming build progress and runtime logs, running Engine AI root-cause diagnostics on failed deployments, rolling back to healthy deployments, managing custom domains, checking domain availability, and registering domains using organization credits. Always ask for explicit confirmation before executing permanent deletions or domain purchases.",
+  "auth": {
+    "type": "oauth",
+    "client_url": "https://mcp.deployxa.com/oauth/authorize",
+    "scope": "projects:read projects:write deployments:read deployments:write domains:read domains:write logs:read",
+    "authorization_url": "https://mcp.deployxa.com/oauth/token",
+    "authorization_content_type": "application/x-www-form-urlencoded"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://mcp.deployxa.com/openapi.json",
+    "is_user_authenticated": true
+  },
+  "logo_url": "https://deployxa.com/icon.png",
+  "contact_email": "info@deployxa.com",
+  "legal_info_url": "https://deployxa.com/terms"
+}

@@ -1,0 +1,347 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Deployxa Platform API",
+    "description": "API for Deployxa cloud deployment, logs, failure diagnostics, and domain management.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.deployxa.com",
+      "description": "Deployxa Production API"
+    }
+  ],
+  "paths": {
+    "/api/projects": {
+      "get": {
+        "operationId": "listProjects",
+        "summary": "List all projects",
+        "description": "Retrieves all projects owned by the authenticated organization.",
+        "responses": {
+          "200": {
+            "description": "List of projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Project" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createProject",
+        "summary": "Create a new project",
+        "description": "Initializes a new Deployxa project linked to a git repository.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "repositoryUrl"],
+                "properties": {
+                  "name": { "type": "string", "description": "Project name" },
+                  "repositoryUrl": { "type": "string", "description": "Git repository URL" },
+                  "branch": { "type": "string", "description": "Default branch (defaults to main)" },
+                  "framework": { "type": "string", "description": "Framework preset (nextjs, remix, express, etc.)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Project created successfully",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Project" } } }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}": {
+      "get": {
+        "operationId": "getProject",
+        "summary": "Get project details",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Project details",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Project" } } }
+          }
+        }
+      }
+    },
+    "/api/projects/{projectId}/deployments": {
+      "get": {
+        "operationId": "listDeployments",
+        "summary": "List deployments for a project",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of deployments",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Deployment" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createDeployment",
+        "summary": "Trigger a new deployment",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "branch": { "type": "string", "description": "Branch to deploy" },
+                  "isPreview": { "type": "boolean", "description": "Whether this is an ephemeral preview build" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Deployment initiated",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Deployment" } } }
+          }
+        }
+      }
+    },
+    "/api/deployments/{deploymentId}": {
+      "get": {
+        "operationId": "getDeployment",
+        "summary": "Get deployment metadata",
+        "parameters": [
+          { "name": "deploymentId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deployment metadata",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Deployment" } } }
+          }
+        }
+      }
+    },
+    "/api/deployments/{deploymentId}/progress": {
+      "get": {
+        "operationId": "getDeploymentProgress",
+        "summary": "Get deployment build progress",
+        "description": "Returns current build stage (QUEUED, BUILDING, DEPLOYING, READY, FAILED).",
+        "parameters": [
+          { "name": "deploymentId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current build progress",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/api/deployments/{deploymentId}/logs": {
+      "get": {
+        "operationId": "getDeploymentLogs",
+        "summary": "Get deployment build and runtime logs",
+        "parameters": [
+          { "name": "deploymentId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log stream lines",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/api/deployments/{deploymentId}/diagnose": {
+      "get": {
+        "operationId": "diagnoseDeployment",
+        "summary": "Run automated root-cause failure diagnosis",
+        "description": "Queries the Deployxa Engine for root-cause error analysis and remediation suggestions.",
+        "parameters": [
+          { "name": "deploymentId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagnosis results and recommendations",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/api/deployments/{deploymentId}/rollback": {
+      "post": {
+        "operationId": "rollbackDeployment",
+        "summary": "Roll back to this deployment",
+        "parameters": [
+          { "name": "deploymentId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rollback completed",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/api/domains/registrar/availability": {
+      "get": {
+        "operationId": "checkDomainAvailability",
+        "summary": "Check domain availability and pricing",
+        "description": "Check if a domain name is available for registration and get exact registration and renewal prices.",
+        "parameters": [
+          { "name": "domain", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Domain availability and pricing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "domain": { "type": "string" },
+                    "available": { "type": "boolean" },
+                    "registrationPriceCents": { "type": "number" },
+                    "renewalPriceCents": { "type": "number" },
+                    "currency": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/domains/registrar/suggestions": {
+      "get": {
+        "operationId": "getDomainSuggestions",
+        "summary": "Suggest domains based on keyword",
+        "parameters": [
+          { "name": "keyword", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "maxResults", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of suggested domains with availability",
+            "content": { "application/json": { "schema": { "type": "array", "items": { "type": "object" } } } }
+          }
+        }
+      }
+    },
+    "/api/domains/registrar/register": {
+      "post": {
+        "operationId": "registerDomain",
+        "summary": "Purchase and register a domain",
+        "description": "Registers a new domain using topped-up organization credits and attaches it to the project.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["projectId", "domain"],
+                "properties": {
+                  "projectId": { "type": "string" },
+                  "domain": { "type": "string" },
+                  "durationYears": { "type": "integer", "default": 1 },
+                  "privacy": { "type": "boolean", "default": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Domain order submitted and processing",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/api/dns-guidance/{projectId}": {
+      "get": {
+        "operationId": "getDnsGuidance",
+        "summary": "Get required DNS records for custom domains",
+        "parameters": [
+          { "name": "projectId", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "domain", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recommended DNS records (CNAME, A, TXT)",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "OAuth2": {
+        "type": "oauth2",
+        "description": "Deployxa OAuth 2.1 authentication",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://mcp.deployxa.com/oauth/authorize",
+            "tokenUrl": "https://mcp.deployxa.com/oauth/token",
+            "scopes": {
+              "projects:read": "Read project details",
+              "projects:write": "Create and modify projects",
+              "deployments:read": "Inspect deployments and logs",
+              "deployments:write": "Trigger deployments and rollbacks",
+              "domains:read": "View domains and check availability",
+              "domains:write": "Register and attach custom domains"
+            }
+          }
+        }
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Deployxa API Key (dxa_...)"
+      }
+    },
+    "schemas": {
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "repositoryUrl": { "type": "string" },
+          "branch": { "type": "string" },
+          "deploymentUrl": { "type": "string" },
+          "status": { "type": "string" }
+        }
+      },
+      "Deployment": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "projectId": { "type": "string" },
+          "status": { "type": "string" },
+          "branch": { "type": "string" },
+          "url": { "type": "string" },
+          "createdAt": { "type": "string" }
+        }
+      }
+    }
+  },
+  "security": [
+    { "OAuth2": [] },
+    { "BearerAuth": [] }
+  ]
+}
