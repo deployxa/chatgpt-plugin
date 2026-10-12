@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "deployxa",
+  "version": "1.0.0",
+  "description": "Deploy web apps, inspect live build logs, run Engine failure diagnostics, and manage custom domains on Deployxa.",
+  "author": {
+    "name": "Deployxa Team",
+    "email": "info@deployxa.com",
+    "url": "https://deployxa.com"
+  },
+  "homepage": "https://deployxa.com",
+  "repository": "https://github.com/deployxa/chatgpt-plugin",
+  "license": "MIT",
+  "keywords": [
+    "deployxa",
+    "cloud",
+    "deployment",
+    "devops",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "presentation": {
+        "displayName": "Deployxa"
+      }
+    }
+  }
+}
